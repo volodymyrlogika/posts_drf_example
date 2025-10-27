@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">{{ page_title }}</h1>
+            
+            <!-- Контейнер для постів -->
+            <div id="posts-container" style="max-width: 500px;">
+                <!-- Сюди будуть додаватися пости через JavaScript -->
+            </div>
+            
+            <div class="text-center mt-4">
+                <button id="load-more-btn" class="btn btn-primary">Завантажити ще</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Змінна для відстеження поточної сторінки
+let currentPage = 1;
+
+/**
+ * Функція для завантаження і відображення постів
+ */
+async function loadPosts() {
+    try {
+        // Робимо запит до API на отримання постів
+        const response = await fetch(`{{ api_url }}?page=${currentPage}`);
+        const data = await response.json();
+        
+        // Отримуємо контейнер для постів
+        const postsContainer = document.getElementById('posts-container');
+        
+        // Додаємо кожен пост на сторінку
+        data.results.forEach(post => {
+            const postHtml = `
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">${post.title}</h5>
+                        <p class="card-text">${post.content.substring(0, 200)}...</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="fas fa-user"></i> Автор: ${post.author}
+                            </small>
+                            <small class="text-muted">
+                                <i class="fas fa-calendar"></i> ${new Date(post.created_at).toLocaleDateString('uk-UA')}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            postsContainer.innerHTML += postHtml;
+        });
+        
+        
+        // Перевіряємо, чи є ще пости
+        if (!data.next) {
+            const loadMoreBtn = document.getElementById('load-more-btn');
+            loadMoreBtn.style.display = 'none';            
+        }
+        
+        // Збільшуємо номер сторінки
+        currentPage++;
+        
+    } catch (error) {
+        console.error('Помилка завантаження постів:', error);
+    }
+}
+
+//  Завантажуємо перші пости при завантаженні сторінки
+document.addEventListener('DOMContentLoaded', function() {
+    loadPosts();
+    // Додаємо обробник кліку для кнопки "Завантажити ще"
+    document.getElementById('load-more-btn').addEventListener('click', loadPosts);
+});
+
+</script>
+
+{% endblock %}
