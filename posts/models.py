@@ -10,6 +10,14 @@ class Post(models.Model):
     created_at = models.DateTimeField(default=timezone.now, verbose_name="Дата створення")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата оновлення")
     is_published = models.BooleanField(default=True, verbose_name="Опубліковано")
+    
+    # Лайки через ManyToManyField - простіше
+    likes = models.ManyToManyField(
+        User, 
+        related_name='liked_posts', 
+        blank=True,
+        verbose_name="Лайки"
+    )
 
     class Meta:
         ordering = ['-created_at']
@@ -18,4 +26,9 @@ class Post(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.author.username}"
+
+    @property
+    def likes_count(self):
+        """Повертає кількість лайків для поста"""
+        return self.likes.count()
 

@@ -44,12 +44,17 @@ async function loadPosts() {
                         <h5 class="card-title">${post.title}</h5>
                         <p class="card-text">${post.content.substring(0, 200)}...</p>
                         <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">
-                                <i class="fas fa-user"></i> Автор: ${post.author}
-                            </small>
-                            <small class="text-muted">
-                                <i class="fas fa-calendar"></i> ${new Date(post.created_at).toLocaleDateString('uk-UA')}
-                            </small>
+                            <div>
+                                <button class="btn btn-outline-danger btn-sm like-btn" data-post-id="${post.id}">
+                                    <i class="bi bi-heart"></i> <span class="likes-count">${post.likes_count || 0}</span>
+                                </button>
+                            </div>
+                            <div>
+                                <small class="text-muted">
+                                    ${new Date(post.created_at).toLocaleDateString('uk-UA')}
+                                </small>
+                            </div>
+                          
                         </div>
                     </div>
                 </div>
@@ -72,11 +77,45 @@ async function loadPosts() {
     }
 }
 
+/**
+ * Функція для обробки лайків
+ */
+async function toggleLike(postId) {
+    try {
+        const response = await fetch(`/api/posts/${postId}/toggle-like/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': `{{csrf_token}}`  // CSRF токен для безпеки
+            }
+        });
+        
+        const data = await response.json();
+        
+        // Оновлюємо кількість лайків на сторінці
+        const likeBtn = document.querySelector(`[data-post-id="${postId}"]`);
+        const likesCount = likeBtn.querySelector('.likes-count');
+        likesCount.textContent = data.likes_count;
+        
+    } catch (error) {
+        console.error('Помилка при обробці лайку:', error);
+    }
+}
+
+
 //  Завантажуємо перші пости при завантаженні сторінки
 document.addEventListener('DOMContentLoaded', function() {
     loadPosts();
     // Додаємо обробник кліку для кнопки "Завантажити ще"
     document.getElementById('load-more-btn').addEventListener('click', loadPosts);
+    
+    // Додаємо обробник кліку для кнопок лайків 
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.like-btn')) {
+            const postId = e.target.closest('.like-btn').dataset.postId;
+            toggleLike(postId);
+        }
+    });
 });
 
 </script>

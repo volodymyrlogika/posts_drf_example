@@ -10,4 +10,7 @@ urlpatterns = [
     
     # API endpoints для роботи з постами
     path('api/posts/', views.PostListAPIView.as_view(), name='posts_api_list'),
+    
+    # API endpoint для лайків
+    path('api/posts/<int:post_id>/toggle-like/', views.toggle_like, name='toggle_like'),
 ]

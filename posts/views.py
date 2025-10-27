@@ -1,7 +1,8 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.decorators import api_view
 from .models import Post
 from .serializers import PostSerializer
 
@@ -31,9 +32,35 @@ class PostListAPIView(generics.ListAPIView):
         Фільтрація постів (можна додати пошук, сортування тощо)
         """
         queryset = super().get_queryset()
-        
+
         
         return queryset
+
+
+@api_view(['POST'])
+def toggle_like(request, post_id):
+    """
+    API endpoint для додавання/видалення лайку
+    POST /api/posts/{post_id}/toggle-like/
+    """
+    # Отримуємо пост
+    post = get_object_or_404(Post, id=post_id, is_published=True)
+    user = request.user
+    
+    # Перевіряємо, чи користувач вже лайкнув цей пост
+    if user in post.likes.all():
+        # Якщо лайк є, видаляємо його
+        post.likes.remove(user)
+        liked = False
+    else:
+        # Якщо лайку немає, додаємо його
+        post.likes.add(user)
+        liked = True
+    
+    return Response({
+        'liked': liked,
+        'likes_count': post.likes_count
+    })
 
 
 def posts_list_view(request):
