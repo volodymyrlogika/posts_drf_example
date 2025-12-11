@@ -10,7 +10,12 @@ class Post(models.Model):
     created_at = models.DateTimeField(default=timezone.now, verbose_name="Дата створення")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата оновлення")
     is_published = models.BooleanField(default=True, verbose_name="Опубліковано")
-    
+    image = models.ImageField(
+        upload_to='post_images/', 
+        null=True, 
+        blank=True, 
+        verbose_name="Зображення"
+    )
     # Лайки через ManyToManyField - простіше
     likes = models.ManyToManyField(
         User, 
